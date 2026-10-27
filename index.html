@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stalling Profile Explorer</title>
+  <meta name="description" content="Interactive explorer for replisome coverage and stalling profiles across a sequence library.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.plot.ly/plotly-cartesian-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
+      <rect width="36" height="36" rx="9" fill="#1c4581"/>
+      <path d="M5 27 L10 26 L13 25 L17 11 L19.5 24 L23 23 L26 25 L31 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="17" cy="11" r="2.8" fill="#f2b53a"/>
+    </svg>
+    <div class="brand-text">
+      <div class="brand-title">Stalling Profile Explorer</div>
+      <div class="brand-sub" id="dataset-label">Loading…</div>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button class="tab is-active" data-tab="overview" role="tab">Overview</button>
+    <button class="tab" data-tab="heatmap" role="tab">Heatmap</button>
+    <button class="tab" data-tab="sequences" role="tab">Sequences</button>
+    <button class="tab" data-tab="help" role="tab">Data &amp; help</button>
+  </nav>
+  <button class="btn btn-sun" id="btn-load" type="button">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Load data
+  </button>
+  <input type="file" id="file-input" multiple accept=".tsv,.csv,.txt,.gz" hidden>
+</header>
+
+<div class="banner" id="demo-banner" hidden>
+  <strong>Simulated demo data.</strong> Load your exported <code>sequences.tsv.gz</code> and <code>profiles.tsv.gz</code> to explore real profiles — files are read inside your browser and never uploaded anywhere.
+</div>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Samples, filters and settings">
+    <section class="panel">
+      <h3 class="panel-title">Samples</h3>
+      <div id="sample-list" class="sample-list"></div>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-title">Filter sequences</h3>
+      <label class="field"><span>Search ID, metadata or sequence</span>
+        <input type="search" id="f-search" placeholder="e.g. G4  CCCTAA  Seq_0012" autocomplete="off">
+      </label>
+      <div id="meta-filters"></div>
+      <label class="field"><span>Min. total reads per profile</span>
+        <input type="number" id="f-minreads" value="0" min="0" step="1">
+      </label>
+      <div class="filter-count" id="filter-count"></div>
+      <button class="btn-link" id="btn-reset" type="button">Reset filters</button>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-title">Profile settings</h3>
+      <label class="field"><span>Normalisation</span>
+        <select id="s-norm">
+          <option value="max">Each profile ÷ its maximum</option>
+          <option value="sum">Each profile ÷ its total reads</option>
+          <option value="raw">Raw read counts</option>
+        </select>
+      </label>
+      <label class="field"><span>STR start position (dist = start − pos)</span>
+        <input type="number" id="s-origin" value="100" step="1">
+      </label>
+      <div class="field"><span>Stall window (distance, nt)</span>
+        <div class="pair">
+          <input type="number" id="s-win-from" value="-10" step="1" aria-label="Window start">
+          <span>to</span>
+          <input type="number" id="s-win-to" value="10" step="1" aria-label="Window end">
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="s-sem" checked> Show ± SEM band</label>
+      <label class="check"><input type="checkbox" id="s-shade" checked> Shade stall window</label>
+    </section>
+  </aside>
+
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section class="view is-active" id="view-overview" role="tabpanel">
+      <div class="view-head">
+        <div>
+          <h2>Average profiles</h2>
+          <p class="lede">Mean normalised coverage across the filtered sequences, with the standard error of the mean as a band. With no split this is the same summary as <code>coverage.profile</code> in your R script.</p>
+        </div>
+        <div class="controls">
+          <label class="field"><span>Split into panels by</span><select id="o-facet"></select></label>
+          <label class="field"><span>Lines show</span>
+            <select id="o-lines">
+              <option value="sample">Samples (one panel per group)</option>
+              <option value="group">Groups (one panel per sample)</option>
+            </select>
+          </label>
+          <button class="btn btn-outline btn-small" id="o-csv" type="button">Download CSV</button>
+        </div>
+      </div>
+      <div class="legend" id="overview-legend"></div>
+      <div class="facet-grid" id="overview-grid"></div>
+      <p class="note" id="overview-note"></p>
+
+      <article class="card section-gap">
+        <div class="card-head">
+          <h3 class="card-title">Reads ending in the stall window</h3>
+        </div>
+        <p class="card-caption" id="win-caption"></p>
+        <div class="card-body"><div id="overview-win" class="plot"></div></div>
+      </article>
+    </section>
+
+    <!-- HEATMAP -->
+    <section class="view" id="view-heatmap" role="tabpanel">
+      <div class="view-head">
+        <div>
+          <h2>Profile heatmap</h2>
+          <p class="lede">Every filtered sequence is a row, every position a column. Choose a second sample to see the difference between the two (B − A). Click a row to open that sequence.</p>
+        </div>
+        <div class="controls">
+          <label class="field"><span>Sample A</span><select id="h-a"></select></label>
+          <label class="field"><span>Compare with B</span><select id="h-b"></select></label>
+          <label class="field"><span>Order rows by</span><select id="h-sort"></select></label>
+          <label class="field"><span>Max. rows</span>
+            <select id="h-rows">
+              <option value="300">300</option>
+              <option value="800" selected>800</option>
+              <option value="1500">1500</option>
+              <option value="3000">3000</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <article class="card">
+        <p class="card-caption" id="heat-caption"></p>
+        <div class="card-body"><div id="heat-plot" class="plot"></div></div>
+      </article>
+    </section>
+
+    <!-- SEQUENCES -->
+    <section class="view" id="view-sequences" role="tabpanel">
+      <div class="view-head">
+        <div>
+          <h2>Sequences</h2>
+          <p class="lede">Rank sequences by how much signal falls in the stall window, or by the change between two samples. Click a row to see its profile and sequence.</p>
+        </div>
+        <div class="controls">
+          <label class="field"><span>Sample A</span><select id="t-a"></select></label>
+          <label class="field"><span>Compare with B</span><select id="t-b"></select></label>
+          <button class="btn btn-outline btn-small" id="t-csv" type="button">Download table</button>
+        </div>
+      </div>
+
+      <article class="card detail" id="detail" hidden></article>
+
+      <article class="card section-gap">
+        <div class="table-wrap">
+          <table class="seqs" id="t-table"><thead></thead><tbody></tbody></table>
+        </div>
+        <div class="pager" id="t-pager"></div>
+      </article>
+    </section>
+
+    <!-- HELP -->
+    <section class="view" id="view-help" role="tabpanel">
+      <div class="prose">
+        <h2>Loading your data</h2>
+        <p>The explorer reads two files written by <code>R/export_for_web.R</code> (in this repository). Run it in the R session where you built <code>cov_long</code>; it writes them to <code>data/local/</code>.</p>
+        <ul>
+          <li><code>sequences.tsv.gz</code> — one row per sequence: <code>seq.id</code> plus metadata (<code>seq</code>, <code>motif.type</code>, <code>motif.length</code>, <code>periodicity</code>, <code>STR.motif.ssDNA</code>, <code>pred.struct</code>…). Any extra column you add becomes a filter automatically.</li>
+          <li><code>profiles.tsv.gz</code> — one row per sequence and sample: <code>seq.id</code>, <code>sample</code>, then the read count at each position in columns <code>p1</code> … <code>p150</code>.</li>
+        </ul>
+
+        <div class="dropzone" id="dropzone" tabindex="0" role="button">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div><strong>Drop both files here</strong>, anywhere on the page, or click to choose them.</div>
+          <div class="dropzone-sub">.tsv, .csv or gzip-compressed. Nothing leaves your computer.</div>
+        </div>
+
+        <p>Two other layouts also load: a long table with <code>seq.id</code>, <code>pos</code>, <code>depth</code> and <code>sample</code> (e.g. <code>cov_long</code> written with <code>fwrite</code>), and the older format with one <code>*.depth</code> column per sample.</p>
+
+        <h3>Automatic loading</h3>
+        <p>If you open the site through a local web server, it loads <code>data/local/manifest.json</code> on start. In a terminal:</p>
+        <pre><code>cd ~/Projects/stalling-profile-explorer
+python3 -m http.server 8000
+# then open http://localhost:8000</code></pre>
+        <p><code>data/local/</code> is excluded from git, so your unpublished data is never pushed to GitHub. The public site shows the demo data until you load your own files.</p>
+
+        <h2>What the numbers mean</h2>
+        <dl class="defs">
+          <dt>Distance from STR start</dt>
+          <dd><code>dist = STR start − pos</code>, with the STR start at position 100 by default, exactly as in the R script. 0 is the first nucleotide of the STR.</dd>
+          <dt>Normalisation</dt>
+          <dd><em>÷ maximum</em> divides each sequence-by-sample profile by its own highest position, so every profile peaks at 1 (your <code>norm</code> column). <em>÷ total</em> turns each profile into the fraction of its reads ending at each position, which keeps the relative height of peaks comparable between sequences. <em>Raw</em> shows read counts. Profiles with no reads are left out of every average.</dd>
+          <dt>Stall window</dt>
+          <dd>A range of distances you choose in the sidebar. For each sequence and sample, the <em>window fraction</em> is the reads ending inside the window divided by all reads for that profile. It uses raw counts, so it does not change with the normalisation setting. Δ is the window fraction in sample B minus sample A: positive means more stalling in the window in B.</dd>
+          <dt>Peak</dt>
+          <dd>The distance of the single highest position in the profile.</dd>
+          <dt>Min. total reads</dt>
+          <dd>Profiles with fewer reads than this are excluded from averages, heatmaps and metrics. Low-coverage profiles are noisy, so raising this to 20–50 often sharpens the averages.</dd>
+        </dl>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="loading" id="loading" hidden>
+  <div class="loading-card">
+    <div class="spinner" aria-hidden="true"></div>
+    <div id="loading-msg">Loading…</div>
+    <div class="progress"><div class="progress-bar" id="loading-bar"></div></div>
+  </div>
+</div>
+<div class="drop-overlay" id="drop-overlay" hidden><div>Drop your files to load them</div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="js/data.js"></script>
+<script src="js/demo.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

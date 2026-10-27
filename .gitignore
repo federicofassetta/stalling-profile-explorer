@@ -1,0 +1,9 @@
+# Real data stays on your computer
+data/local/*
+!data/local/README.md
+
+# System files
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/
