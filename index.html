@@ -7,18 +7,21 @@
   <meta name="description" content="Interactive explorer for replisome coverage and stalling profiles across a sequence library.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.plot.ly/plotly-cartesian-2.35.2.min.js" charset="utf-8"></script>
 </head>
 <body>
+<div class="aura" aria-hidden="true"></div>
 
 <header class="topbar">
   <div class="brand">
-    <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
-      <rect width="36" height="36" rx="9" fill="#1c4581"/>
-      <path d="M5 27 L10 26 L13 25 L17 11 L19.5 24 L23 23 L26 25 L31 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="17" cy="11" r="2.8" fill="#f2b53a"/>
+    <svg class="brand-mark" viewBox="0 0 38 38" aria-hidden="true">
+      <rect x=".5" y=".5" width="37" height="37" rx="11" fill="#fff" stroke="#d9d3f5"/>
+      <circle cx="13.5" cy="13.5" r="4.6" fill="#3fa88d"/>
+      <circle cx="24.5" cy="13.5" r="4.6" fill="#5b9bd5"/>
+      <circle cx="13.5" cy="24.5" r="4.6" fill="#d9a23b"/>
+      <circle cx="24.5" cy="24.5" r="4.6" fill="#e8836b"/>
     </svg>
     <div class="brand-text">
       <div class="brand-title">Stalling Profile Explorer</div>

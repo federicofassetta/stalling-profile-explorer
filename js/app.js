@@ -5,8 +5,8 @@
   'use strict';
 
   const SD = window.SPEData;
-  const PALETTE = ['#1c4581', '#d55e00', '#009e73', '#cc79a7', '#e69f00', '#56b4e9',
-                   '#7a4fa3', '#8c6d31', '#b2182b', '#2a9d8f', '#4a5d78', '#e76f51'];
+  const PALETTE = ['#7b6cd9', '#e8836b', '#3fa88d', '#5b9bd5', '#d9a23b', '#c46fa0',
+                   '#7fa65a', '#4c4f8f', '#e4a3b8', '#2f8a9e', '#a58a6b', '#8a8fa8'];
   const MAX_FACETS = 12;
   const PAGE = 25;
   const TABLE_META_PREF = ['motif.type', 'STR.motif.ssDNA', 'motif.length', 'pred.struct', 'periodicity'];
@@ -125,14 +125,14 @@
   // ---------- plot helpers ----------
   function baseLayout(extra = {}) {
     const axis = {
-      zeroline: false, gridcolor: '#e9eff7', linecolor: '#c9d6e6', showline: true, ticks: 'outside',
-      tickcolor: '#c9d6e6', ticklen: 4, tickfont: { size: 11 }, automargin: true,
+      zeroline: false, gridcolor: '#eef0f6', linecolor: '#dcdfea', showline: true, ticks: 'outside',
+      tickcolor: '#dcdfea', ticklen: 4, tickfont: { size: 11, color: '#6a6f8c' }, automargin: true,
     };
     const L = {
       margin: { l: 58, r: 14, t: 12, b: 48 },
       paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#ffffff',
-      font: { family: 'Barlow, system-ui, sans-serif', size: 12, color: '#142640' },
-      hoverlabel: { font: { family: 'IBM Plex Mono, monospace', size: 11 }, bordercolor: '#d5e0ee', bgcolor: '#ffffff' },
+      font: { family: 'Manrope, system-ui, sans-serif', size: 12, color: '#22243b' },
+      hoverlabel: { font: { family: 'Manrope, system-ui, sans-serif', size: 12, color: '#22243b' }, bordercolor: '#d9d3f5', bgcolor: '#ffffff' },
       hovermode: 'x unified', showlegend: false,
       xaxis: Object.assign({}, axis, { title: { text: 'Distance from STR start (nt)', font: { size: 12.5 } } }),
       yaxis: Object.assign({}, axis),
@@ -149,10 +149,10 @@
     toImageButtonOptions: { format: 'svg', filename: slug(name) },
   });
   function windowShapes() {
-    const shapes = [{ type: 'line', xref: 'x', yref: 'paper', x0: 0, x1: 0, y0: 0, y1: 1, line: { color: '#8494ad', width: 1, dash: 'dot' }, layer: 'below' }];
+    const shapes = [{ type: 'line', xref: 'x', yref: 'paper', x0: 0, x1: 0, y0: 0, y1: 1, line: { color: '#b4b7cc', width: 1, dash: 'dot' }, layer: 'below' }];
     if (state.settings.shade) {
       const [w0, w1] = winSorted();
-      shapes.unshift({ type: 'rect', xref: 'x', yref: 'paper', x0: w0 - 0.5, x1: w1 + 0.5, y0: 0, y1: 1, fillcolor: 'rgba(242,181,58,0.17)', line: { width: 0 }, layer: 'below' });
+      shapes.unshift({ type: 'rect', xref: 'x', yref: 'paper', x0: w0 - 0.5, x1: w1 + 0.5, y0: 0, y1: 1, fillcolor: 'rgba(232,131,107,0.12)', line: { width: 0 }, layer: 'below' });
     }
     return shapes;
   }
@@ -312,13 +312,13 @@
       return {
         type: 'bar', name: s, x: xs, y: ys, customdata: ns,
         marker: { color: sampleColor(s) },
-        error_y: { type: 'data', array: es, visible: true, color: '#4a5d78', thickness: 1.2, width: 3 },
+        error_y: { type: 'data', array: es, visible: true, color: '#6a6f8c', thickness: 1.2, width: 3 },
         hovertemplate: `${esc(s)}<br>%{x}: %{y:.3f} (n=%{customdata})<extra></extra>`,
       };
     });
     const layout = baseLayout({
       height: 330, barmode: 'group', bargap: 0.25, bargroupgap: 0.08, hovermode: 'closest', showlegend: true,
-      legend: { orientation: 'h', x: 0, y: 1.14, font: { family: 'IBM Plex Mono, monospace', size: 11 } },
+      legend: { orientation: 'h', x: 0, y: 1.14, font: { family: 'Manrope, system-ui, sans-serif', size: 12 } },
       margin: { l: 58, r: 14, t: 34, b: 48 },
       xaxis: { title: { text: facet || '', font: { size: 12.5 } }, type: 'category', showgrid: false },
       yaxis: { title: { text: 'Fraction of reads in window', font: { size: 12.5 } }, rangemode: 'tozero' },
@@ -413,8 +413,8 @@
       const m = r.members.length;
       z.push(cols.map(k => acc[k] / m));
       const label = m === 1
-        ? D.ids[r.members[0]] + (r.group ? ` · ${r.group}` : '')
-        : `${fmtInt(m)} sequences (rows ${fmtInt(seen + 1)}–${fmtInt(seen + m)})${r.group ? ' · ' + r.group : ''}`;
+        ? D.ids[r.members[0]] + (r.group ? `, ${r.group}` : '')
+        : `${fmtInt(m)} sequences (rows ${fmtInt(seen + 1)}–${fmtInt(seen + m)})${r.group ? ', ' + r.group : ''}`;
       seen += m;
       text.push(new Array(cols.length).fill(label));
     }
@@ -428,11 +428,11 @@
     if (b) {
       const lim = q98 || 1;
       zmin = -lim; zmax = lim;
-      colorscale = [[0, '#12305d'], [0.25, '#74acdf'], [0.5, '#ffffff'], [0.75, '#f4a259'], [1, '#a63d12']];
+      colorscale = [[0, '#2f8a73'], [0.25, '#a6dccb'], [0.5, '#ffffff'], [0.75, '#f6bcab'], [1, '#c9573e']];
       cbTitle = `B − A`;
     } else {
       zmin = 0; zmax = norm === 'max' ? 1 : (q98 || 1);
-      colorscale = [[0, '#ffffff'], [0.12, '#e4eff9'], [0.35, '#74acdf'], [0.65, '#1c4581'], [1, '#0b1d3a']];
+      colorscale = [[0, '#ffffff'], [0.12, '#eeeafb'], [0.35, '#b9aeec'], [0.65, '#7b6cd9'], [1, '#2e2675']];
       cbTitle = norm === 'max' ? '÷ max' : norm === 'sum' ? 'fraction' : 'log10(1+reads)';
     }
 
@@ -445,19 +445,19 @@
         const nRows = outRows.filter(r => r.group === g.name).length;
         tickvals.push(start + (nRows - 1) / 2);
         ticktext.push(`${g.name} (${fmtInt(g.idx.length)})`);
-        if (gi > 0) shapes.push({ type: 'line', xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: start - 0.5, y1: start - 0.5, line: { color: '#142640', width: 1.5 } });
+        if (gi > 0) shapes.push({ type: 'line', xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: start - 0.5, y1: start - 0.5, line: { color: '#22243b', width: 1.2 } });
         start += nRows;
       });
     }
     if (state.settings.shade) {
       const [w0, w1] = winSorted();
-      [w0 - 0.5, w1 + 0.5].forEach(xv => shapes.push({ type: 'line', xref: 'x', yref: 'paper', x0: xv, x1: xv, y0: 0, y1: 1, line: { color: '#f2b53a', width: 2, dash: 'dash' } }));
+      [w0 - 0.5, w1 + 0.5].forEach(xv => shapes.push({ type: 'line', xref: 'x', yref: 'paper', x0: xv, x1: xv, y0: 0, y1: 1, line: { color: '#e8836b', width: 1.5, dash: 'dash' } }));
     }
 
     const trace = {
       type: 'heatmap', x, y: outRows.map((_, k) => k), z, text,
       zmin, zmax, colorscale, zsmooth: false,
-      hovertemplate: '%{text}<br>dist %{x} nt · value %{z:.3f}<extra></extra>',
+      hovertemplate: '%{text}<br>dist %{x} nt, value %{z:.3f}<extra></extra>',
       colorbar: { title: { text: cbTitle, side: 'right', font: { size: 11 } }, thickness: 12, len: 0.6, outlinewidth: 0, tickfont: { size: 10 } },
     };
     const layout = baseLayout({
@@ -566,7 +566,7 @@
     const b = state.table.b && state.table.b !== state.table.a ? state.table.b : '';
     $('#t-pager').innerHTML = `
       <span>${rows.length ? `${fmtInt(start + 1)}–${fmtInt(Math.min(start + PAGE, rows.length))} of ${fmtInt(rows.length)}` : '0 sequences'}
-        · A = <b>${esc(state.table.a)}</b>${b ? ` · B = <b>${esc(b)}</b>` : ''}</span>
+        <span class="pager-ab">A is <b>${esc(state.table.a)}</b>${b ? `, B is <b>${esc(b)}</b>` : ''}</span></span>
       <span class="pager-btns">
         <button class="btn-icon" data-page="first" ${state.table.page === 0 ? 'disabled' : ''} aria-label="First page">«</button>
         <button class="btn-icon" data-page="prev" ${state.table.page === 0 ? 'disabled' : ''} aria-label="Previous page">‹</button>
@@ -662,15 +662,15 @@
       let bases = '';
       for (let k = s0; k < Math.min(seq.length, s0 + LINE); k++) {
         if (k > s0 && (k - s0) % 10 === 0) bases += ' ';
-        const tip = aligned ? `pos ${D.positions[k]} · dist ${state.dist[k]}` : `nt ${k + 1}`;
-        bases += `<span class="b${cls[k]}" title="${tip}">${seq[k]}</span>`;
+        const tip = aligned ? `pos ${D.positions[k]}, dist ${state.dist[k]}` : `nt ${k + 1}`;
+        bases += `<span class="b nt-${seq[k]}${cls[k]}" title="${tip}">${seq[k]}</span>`;
       }
       html += `<div class="seq-line"><span class="seq-pos">${aligned ? D.positions[s0] : s0 + 1}</span><span>${bases}</span></div>`;
     }
     const key = [
-      motifs.size ? '<span><i style="background:#d3e3f6"></i>STR repeat</span>' : '',
-      aligned ? '<span><i style="background:transparent;box-shadow:inset 0 -3px 0 #f2b53a"></i>Stall window</span>' : '',
-      peakLabel ? `<span><i style="background:#f2b53a"></i>Highest position in ${esc(peakLabel)}</span>` : '',
+      motifs.size ? '<span><i class="key-str"></i>STR repeat</span>' : '',
+      aligned ? '<span><i class="key-win"></i>Stall window</span>' : '',
+      peakLabel ? `<span><i class="key-peak"></i>Highest position in ${esc(peakLabel)}</span>` : '',
       !aligned ? `<span>The sequence is ${seq.length} nt but the profiles have ${D.L} positions, so bases are not aligned to the plot.</span>` : '',
     ].join('');
     return `<div class="seqbox">${html}</div><div class="seq-key">${key}</div>`;
@@ -691,7 +691,7 @@
       const ok = isValid(s, i);
       const has = D.present[s][i] && D.total[s][i] > 0;
       const body = ok
-        ? `<b>${fmtInt(D.total[s][i])}</b> reads · peak at <b>${peakDist(s, i)}</b> nt<br>window fraction <b>${fmt(state.winFrac[s][i])}</b>`
+        ? `<b>${fmtInt(D.total[s][i])}</b> reads<br>peak at <b>${peakDist(s, i)}</b> nt<br>window fraction <b>${fmt(state.winFrac[s][i])}</b>`
         : has ? `${fmtInt(D.total[s][i])} reads — below the minimum` : 'No reads';
       return `<div class="metric"><div class="metric-name"><span class="swatch" style="background:${sampleColor(s)}"></span>${esc(s)}</div><div class="metric-vals">${body}</div></div>`;
     }).join('');
@@ -729,13 +729,13 @@
       const seq = String(D.mstr[D.seqCol][i] || '').toUpperCase();
       if (seq.length === D.L) {
         traces.push({ x: state.dist, y: new Array(D.L).fill(0), type: 'scatter', mode: 'markers', marker: { opacity: 0, size: 1 },
-          customdata: D.positions.map((pp, k) => [seq[k], pp]), hovertemplate: 'base %{customdata[0]} · pos %{customdata[1]}<extra></extra>', showlegend: false });
+          customdata: D.positions.map((pp, k) => [seq[k], pp]), hovertemplate: 'base %{customdata[0]}, pos %{customdata[1]}<extra></extra>', showlegend: false });
       }
     }
     if (!nSample) { $('#detail-plot').innerHTML = emptyHTML('No reads for this sequence in the selected samples.'); return; }
     Plotly.newPlot('detail-plot', traces, baseLayout({
       height: 320, showlegend: true,
-      legend: { orientation: 'h', x: 0, y: 1.12, font: { family: 'IBM Plex Mono, monospace', size: 11 } },
+      legend: { orientation: 'h', x: 0, y: 1.12, font: { family: 'Manrope, system-ui, sans-serif', size: 12 } },
       margin: { l: 58, r: 14, t: 30, b: 48 },
       yaxis: { title: { text: yTitle(norm), font: { size: 12.5 } }, rangemode: 'tozero' },
       shapes: windowShapes(),
@@ -778,10 +778,10 @@
     $('#detail').hidden = true;
 
     const label = D.isDemo ? 'Simulated demo dataset' : D.name;
-    $('#dataset-label').textContent = `${label} · ${fmtInt(D.N)} sequences · ${D.samples.length} sample${D.samples.length === 1 ? '' : 's'} · ${D.L} positions`;
+    $('#dataset-label').innerHTML = `<span class="ds-name">${esc(label)}</span><span class="ds-chip">${fmtInt(D.N)} sequences</span><span class="ds-chip">${D.samples.length} sample${D.samples.length === 1 ? '' : 's'}</span><span class="ds-chip">${D.L} positions</span>`;
     $('#dataset-label').title = D.files.length ? D.files.map(f => `${f.name} (${f.kind}, ${fmtInt(f.rows)} rows)`).join('\n') : label;
     $('#demo-banner').hidden = !D.isDemo;
-    document.title = D.isDemo ? 'Stalling Profile Explorer' : `${D.name} · Stalling Profile Explorer`;
+    document.title = D.isDemo ? 'Stalling Profile Explorer' : `${D.name} | Stalling Profile Explorer`;
     if (!D.isDemo && D.metaMissing) toast('Profiles loaded without a sequences file. Add sequences.tsv.gz to get metadata filters and sequences.');
 
     buildSampleList();

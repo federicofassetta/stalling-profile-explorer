@@ -78,7 +78,7 @@ Then on GitHub: **Settings → Pages → Build and deployment → Deploy from a 
 
 ```
 index.html            page layout
-css/style.css         styles (palette shared with the RCARU site)
+css/style.css         styles (pastel palette from the four nucleotide channels)
 js/data.js            file parsing and dataset assembly (no DOM; testable in Node)
 js/demo.js            seeded simulated demo dataset
 js/app.js             views, plots and interaction
